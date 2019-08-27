@@ -17,7 +17,7 @@
 data "template_file" "nat-startup-script" {
   template = "${file("${format("%s/config/startup.sh", path.module)}")}"
 
-  vars {
+  vars = {
     squid_enabled = "${var.squid_enabled}"
     squid_config  = "${var.squid_config}"
     module_path   = "${path.module}"
@@ -52,7 +52,7 @@ module "nat-gateway" {
   zone                  = "${local.zone}"
   network               = "${var.network}"
   subnetwork            = "${var.subnetwork}"
-  target_tags           = ["${local.instance_tags}"]
+  target_tags           = local.instance_tags
   instance_labels       = "${var.instance_labels}"
   service_account_email = "${var.service_account_email}"
   machine_type          = "${var.machine_type}"
@@ -82,11 +82,7 @@ module "nat-gateway" {
     },
   ]
 
-  access_config = [
-    {
-      nat_ip = "${element(concat(google_compute_address.default.*.address, data.google_compute_address.default.*.address, list("")), 0)}"
-    },
-  ]
+  nat_ip = "${element(concat(google_compute_address.default.*.address, data.google_compute_address.default.*.address, list("")), 0)}"
 }
 
 resource "google_compute_route" "nat-gateway" {
@@ -95,9 +91,9 @@ resource "google_compute_route" "nat-gateway" {
   project                = "${var.project}"
   dest_range             = "${var.dest_range}"
   network                = "${data.google_compute_network.network.self_link}"
-  next_hop_instance      = "${element(split("/", element(module.nat-gateway.instances[0], 0)), 10)}"
+  next_hop_instance      = "${element(split("/", tostring(element(tolist(module.nat-gateway.instances[0]), 0))), 10)}"
   next_hop_instance_zone = "${local.zone}"
-  tags                   = ["${compact(concat(list("${local.regional_tag}", "${local.zonal_tag}"), var.tags))}"]
+  tags                   = compact(concat(list("${local.regional_tag}", "${local.zonal_tag}"), var.tags))
   priority               = "${var.route_priority}"
 }
 
@@ -111,8 +107,8 @@ resource "google_compute_firewall" "nat-gateway" {
     protocol = "all"
   }
 
-  source_tags = ["${compact(concat(list("${local.regional_tag}", "${local.zonal_tag}"), var.tags))}"]
-  target_tags = ["${compact(concat(local.instance_tags, var.tags))}"]
+  source_tags = compact(concat(list("${local.regional_tag}", "${local.zonal_tag}"), var.tags))
+  target_tags = compact(concat(local.instance_tags, var.tags))
 }
 
 resource "google_compute_address" "default" {
