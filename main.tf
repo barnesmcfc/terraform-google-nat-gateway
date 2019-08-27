@@ -45,8 +45,7 @@ locals {
 }
 
 module "nat-gateway" {
-  source                = "GoogleCloudPlatform/managed-instance-group/google"
-  version               = "1.1.15"
+  source                = "git::ssh://git@github.com/democrats/terraform-google-managed-instance-group.git?ref=provider-2.x-compat"
   module_enabled        = "${var.module_enabled}"
   project               = "${var.project}"
   region                = "${var.region}"
