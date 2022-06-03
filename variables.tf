@@ -60,7 +60,7 @@ variable ip_address_name {
 
 variable tags {
   description = "Additional compute instance network tags to apply route to."
-  type        = "list"
+  type        = list
   default     = []
 }
 
@@ -107,7 +107,7 @@ variable "ssh_fw_rule" {
 
 variable ssh_source_ranges {
   description = "Network ranges to allow SSH from"
-  type        = "list"
+  type        = list
   default     = ["0.0.0.0/0"]
 }
 
